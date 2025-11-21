@@ -1,0 +1,52 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Virtual environment
+.vscode/
+.idea/
+
+# PyTorch model files (large)
+model/*.pth
+model/*.pt
+
+# Uploaded files, outputs, logs
+main/uploads/
+main/outputs/
+outputs/
+uploads/
+*.log
+
+# Notebook checkpoints
+.ipynb_checkpoints
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+
+# Secrets
+*.pem
+*.key
+
+# Windows specific
+*.lnk
+
+# Ignore datasets (if any)
+data/
+
+# Ignore .env local
+.env.local

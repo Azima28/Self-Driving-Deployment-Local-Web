@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCN8s Segmentation Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .device-info {
+            background: #f0f4ff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+            color: #555;
+            border-left: 4px solid #667eea;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8eeff;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .settings-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .settings-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .setting-label label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .setting-value {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            transition: background 0.3s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            background: #764ba2;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-process {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-process:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-process:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .file-info {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .file-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-info-label {
+            color: #666;
+        }
+
+        .file-info-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-section {
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .progress-section.show {
+            display: block;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .download-section {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #f0fff4;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .download-section.show {
+            display: block;
+        }
+
+        .download-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .download-text {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 32px;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.4);
+        }
+
+        .error-section {
+            display: none;
+            padding: 15px;
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            border-radius: 8px;
+            color: #c53030;
+            margin-bottom: 20px;
+        }
+
+        .error-section.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .help-text {
+            background: #fffacd;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 20px;
+            border-left: 3px solid #ffd700;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 FCN8s Segmentation</h1>
+            <p>Upload image or video to segment using FCN8s semantic segmentation</p>
+        </div>
+
+        <div class="device-info" id="deviceInfo">
+            Loading device info...
+        </div>
+
+        <form id="segmentationForm">
+            <!-- Upload Area -->
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Click or drag file here</div>
+                    <div class="upload-subtext">Supported: PNG, JPG, MP4, AVI, MOV (Max 500 MB)</div>
+                </div>
+                <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.mp4,.avi,.mov">
+            </div>
+
+            <!-- File Info -->
+            <div class="file-info" id="fileInfo">
+                <div class="file-info-item">
+                    <span class="file-info-label">File:</span>
+                    <span class="file-info-value" id="fileName">-</span>
+                </div>
+                <div class="file-info-item">
+                    <span class="file-info-label">Size:</span>
+                    <span class="file-info-value" id="fileSize">-</span>
+                </div>
+                <div class="file-info-item">
+                    <span class="file-info-label">Type:</span>
+                    <span class="file-info-value" id="fileType">-</span>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="settings-section">
+                <div class="settings-title">⚙️ Processing Settings</div>
+
+                <div class="setting-group">
+                    <div class="setting-label">
+                        <label for="modelType">Model Type:</label>
+                    </div>
+                    <select id="modelType">
+                        <option value="fcn8s">FCN8s</option>
+                        <option value="unet">U-Net</option>
+                    </select>
+                    <div class="upload-subtext">Choose segmentation model</div>
+                </div>
+
+                <div class="setting-group">
+                    <div class="setting-label">
+                        <label for="resizeDim">Resize Dimension:</label>
+                        <span class="setting-value" id="resizeDimValue">256</span>
+                    </div>
+                    <input type="range" id="resizeDim" min="128" max="512" value="256" step="64">
+                    <div class="upload-subtext">Higher = better quality, slower processing</div>
+                </div>
+
+                <div class="setting-group">
+                    <div class="setting-label">
+                        <label for="skipFrames">Skip Frames:</label>
+                        <span class="setting-value" id="skipFramesValue">1</span>
+                    </div>
+                    <input type="range" id="skipFrames" min="1" max="10" value="1" step="1">
+                    <div class="upload-subtext">Video only: Process every N frame (1 = all frames)</div>
+                </div>
+
+                <div class="setting-group">
+                    <div class="setting-label">
+                        <label for="batchSize">Batch Size:</label>
+                        <span class="setting-value" id="batchSizeValue">8</span>
+                    </div>
+                    <input type="range" id="batchSize" min="1" max="32" value="8" step="1">
+                    <div class="upload-subtext">Larger = faster but more GPU memory</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-process" id="processBtn" disabled>
+                    Process
+                </button>
+                <button type="button" class="btn btn-clear" id="clearBtn">
+                    Clear
+                </button>
+            </div>
+        </form>
+
+        <!-- Error Section -->
+        <div class="error-section" id="errorSection"></div>
+
+        <!-- Progress Section -->
+        <div class="progress-section" id="progressSection">
+            <div class="spinner"></div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">Processing... Please wait</div>
+        </div>
+
+        <!-- Download Section -->
+        <div class="download-section" id="downloadSection">
+            <div class="download-icon">✅</div>
+            <div class="download-text">Processing complete! Your segmented file is ready.</div>
+            <a href="#" class="btn-download" id="downloadBtn">Download Result</a>
+        </div>
+
+        <div class="help-text">
+            💡 Tip: For video files, use higher skip_frames (e.g., 3-5) for faster processing. Higher resize_dim gives better quality but slower speed.
+        </div>
+    </div>
+
+    <script>
+        // ==================== State Management ====================
+        let selectedFile = null;
+
+        // ==================== DOM Elements ====================
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const form = document.getElementById('segmentationForm');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+        const resizeDim = document.getElementById('resizeDim');
+        const resizeDimValue = document.getElementById('resizeDimValue');
+        const skipFrames = document.getElementById('skipFrames');
+        const skipFramesValue = document.getElementById('skipFramesValue');
+        const batchSize = document.getElementById('batchSize');
+        const batchSizeValue = document.getElementById('batchSizeValue');
+        const progressSection = document.getElementById('progressSection');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const errorSection = document.getElementById('errorSection');
+        const deviceInfo = document.getElementById('deviceInfo');
+
+        // ==================== Event Listeners ====================
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        resizeDim.addEventListener('input', (e) => {
+            resizeDimValue.textContent = e.target.value;
+        });
+
+        skipFrames.addEventListener('input', (e) => {
+            skipFramesValue.textContent = e.target.value;
+        });
+
+        batchSize.addEventListener('input', (e) => {
+            batchSizeValue.textContent = e.target.value;
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (selectedFile) {
+                processFile();
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            clearAll();
+        });
+
+        // ==================== Functions ====================
+        function handleFileSelect(file) {
+            selectedFile = file;
+            
+            // Update file info
+            fileName.textContent = file.name;
+            fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            fileType.textContent = file.type || 'Unknown';
+            
+            fileInfo.classList.add('show');
+            processBtn.disabled = false;
+            
+            hideError();
+            hideProgress();
+            hideDownload();
+        }
+
+        function clearAll() {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            processBtn.disabled = true;
+            hideError();
+            hideProgress();
+            hideDownload();
+        }
+
+        function showError(message) {
+            errorSection.textContent = `❌ Error: ${message}`;
+            errorSection.classList.add('show');
+        }
+
+        function hideError() {
+            errorSection.classList.remove('show');
+        }
+
+        function showProgress() {
+            progressSection.classList.add('show');
+            processBtn.disabled = true;
+        }
+
+        function hideProgress() {
+            progressSection.classList.remove('show');
+            processBtn.disabled = false;
+        }
+
+        function updateProgress(percent, text) {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+
+        function showDownload(downloadUrl) {
+            downloadBtn.href = downloadUrl;
+            downloadBtn.setAttribute('download', 'segmented_result');
+            downloadSection.classList.add('show');
+        }
+
+        function hideDownload() {
+            downloadSection.classList.remove('show');
+        }
+
+
+        function isVideoFile(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            return ['mp4', 'avi', 'mov'].includes(ext);
+        }
+
+        async function processFile() {
+            if (!selectedFile) return;
+
+            showProgress();
+            hideError();
+            updateProgress(0, 'Uploading file...');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('resize_dim', resizeDim.value);
+                formData.append('skip_frames', skipFrames.value);
+                formData.append('batch_size', batchSize.value);
+                formData.append('model_type', document.getElementById('modelType').value);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Processing failed');
+                }
+
+                // If video, handle job_id and poll status
+                if (isVideoFile(selectedFile) && data.job_id) {
+                    pollJobStatus(data.job_id);
+                } else if (data.output_path) {
+                    updateProgress(100, 'Processing complete!');
+                    setTimeout(() => {
+                        hideProgress();
+                        showDownload(data.output_path);
+                    }, 500);
+                } else {
+                    throw new Error('Unknown response from server');
+                }
+
+            } catch (error) {
+                hideProgress();
+                showError(error.message);
+                console.error('Error:', error);
+            }
+        }
+
+        async function pollJobStatus(jobId) {
+            let polling = true;
+            let lastProgress = 0;
+            updateProgress(5, 'Processing video...');
+
+            while (polling) {
+                try {
+                    const res = await fetch(`/api/job_status/${jobId}`);
+                    const job = await res.json();
+                    if (job.error) {
+                        throw new Error(job.error);
+                    }
+                    if (job.status === 'done' && job.output_path) {
+                        updateProgress(100, 'Processing complete!');
+                        setTimeout(() => {
+                            hideProgress();
+                            showDownload(job.output_path);
+                        }, 500);
+                        polling = false;
+                        break;
+                    } else if (job.status === 'error') {
+                        throw new Error(job.error || 'Video processing failed');
+                    } else {
+                        // Update progress bar
+                        let percent = job.progress || 0;
+                        if (percent !== lastProgress) {
+                            updateProgress(percent, `Processing video... (${percent}%)`);
+                            lastProgress = percent;
+                        }
+                    }
+                } catch (err) {
+                    hideProgress();
+                    showError(err.message);
+                    polling = false;
+                    break;
+                }
+                await new Promise(r => setTimeout(r, 2000)); // poll every 2s
+            }
+        }
+
+        // ==================== Initialization ====================
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                const gpuStatus = data.gpu_available 
+                    ? `✅ GPU: ${data.gpu_name}` 
+                    : '⚠️ Using CPU (slower)';
+                const modelStatus = data.model_loaded 
+                    ? `✅ Model: ${data.num_classes} classes` 
+                    : '❌ Model not loaded';
+                
+                deviceInfo.innerHTML = `${gpuStatus} | ${modelStatus}`;
+            } catch (error) {
+                console.error('Failed to fetch status:', error);
+            }
+        }
+
+        // Fetch status on page load
+        document.addEventListener('DOMContentLoaded', fetchStatus);
+    </script>
+</body>
+</html>
