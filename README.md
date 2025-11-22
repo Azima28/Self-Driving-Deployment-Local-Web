@@ -46,15 +46,3 @@ python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.devi
 pip uninstall torch torchvision torchaudio
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu118
 ```
-
-## Preparing for GitHub
-- This repository includes a `.gitignore` that excludes model weights and runtime outputs.
-- Before pushing, ensure you do not commit large `.pth` files.
-
-## What I changed (by helper)
-- Added `.gitignore`, `README.md`, and `env.example` placeholder.
-- Did not modify model logic in `app.py`.
-
-If you'd like, I can also:
-- Move the root `templates/` (duplicate) into a backup or delete it.
-- Add a small `run.ps1` script to start the app.
